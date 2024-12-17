@@ -1,17 +1,25 @@
 const express = require('express');
 const cors = require('cors');
+const authRoutes = require('./routes/auth');
 
 // Initialize express app
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:3000', // Your frontend URL
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Import routes once
-const authRoutes = require('./routes/auth');
-
+app.use((req, res, next) => {
+  console.log(`Incoming request: ${req.method} ${req.path}`);
+  console.log('Request body:', req.body);
+  next();
+});
 // Use routes
 app.use('/api/auth', authRoutes);
 

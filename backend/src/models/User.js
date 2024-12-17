@@ -26,17 +26,19 @@ module.exports = (sequelize) => {
       type: DataTypes.STRING,
       allowNull: false
     },
-    name: {
+    firstName: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    lastName: {
       type: DataTypes.STRING,
       allowNull: false
     }
   }, {
     sequelize,
-    modelName: 'User'
+    modelName: 'User',
+    timestamps: true
   });
-
-  // Remove any hooks that might be rehashing the password
-  // We'll handle password hashing in the route instead
 
   return User;
 };

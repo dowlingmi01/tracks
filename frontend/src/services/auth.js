@@ -1,7 +1,8 @@
 // frontend/src/services/auth.js
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+// Remove '/api' from the base URL since it's included in the routes
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
 export const axiosInstance = axios.create({
   baseURL: API_URL,
@@ -40,23 +41,67 @@ axiosInstance.interceptors.response.use(
 );
 
 export async function loginUser(email, password) {
-  const response = await axiosInstance.post('/auth/login', {
-    email,
-    password,
-  });
-  return response.data;
+  try {
+    console.log('Attempting login at:', `${API_URL}/auth/login`);
+    const response = await axiosInstance.post('/auth/login', {
+      email,
+      password,
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Login error:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+      url: error.config?.url
+    });
+    throw error;
+  }
 }
 
 export async function registerUser(userData) {
-  const response = await axiosInstance.post('/auth/register', userData);
-  return response.data;
+  try {
+    console.log('Registering at:', `${API_URL}/auth/register`);
+    const response = await axiosInstance.post('/auth/register', userData);
+    return response.data;
+  } catch (error) {
+    console.error('Registration error:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+      url: error.config?.url
+    });
+    throw error;
+  }
 }
 
 export async function logoutUser() {
-  await axiosInstance.post('/auth/logout');
+  try {
+    console.log('Logging out at:', `${API_URL}/auth/logout`);
+    await axiosInstance.post('/auth/logout');
+  } catch (error) {
+    console.error('Logout error:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+      url: error.config?.url
+    });
+    throw error;
+  }
 }
 
 export async function refreshToken() {
-  const response = await axiosInstance.post('/auth/refresh-token');
-  return response.data;
+  try {
+    console.log('Refreshing token at:', `${API_URL}/auth/refresh-token`);
+    const response = await axiosInstance.post('/auth/refresh-token');
+    return response.data;
+  } catch (error) {
+    console.error('Token refresh error:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+      url: error.config?.url
+    });
+    throw error;
+  }
 }

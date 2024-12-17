@@ -4,7 +4,8 @@ const jwt = require('jsonwebtoken');
 const authController = {
   register: async (req, res) => {
     try {
-      const { email, password, firstName, lastName } = req.body;
+      const { email, password } = req.body;
+      console.log('Login attempt for:', email); // Add logging
       
       // Check if user already exists
       const existingUser = await User.findOne({ where: { email } });
@@ -50,6 +51,7 @@ const authController = {
       // Find user
       const user = await User.findOne({ where: { email } });
       if (!user) {
+        console.log('User not found:', email); // Add logging
         return res.status(401).json({ message: 'Invalid credentials' });
       }
 
@@ -77,8 +79,11 @@ const authController = {
         }
       });
     } catch (error) {
-      console.error('Login error:', error);
-      res.status(500).json({ message: 'Error logging in' });
+      console.error('Login error details:', {
+        message: error.message,
+        stack: error.stack 
+      });
+        res.status(500).json({ message: 'Error logging in' });  
     }
   }
 };
