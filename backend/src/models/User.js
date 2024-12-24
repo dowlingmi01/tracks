@@ -1,10 +1,14 @@
-const { Model, DataTypes } = require('sequelize');
+'use strict';
+const { Model } = require('sequelize');
 const bcrypt = require('bcryptjs');
 
-module.exports = (sequelize) => {
+module.exports = (sequelize, DataTypes) => {
   class User extends Model {
     static associate(models) {
-      // define associations here
+      User.belongsTo(models.Company, {
+        foreignKey: 'companyId',
+        as: 'company'
+      });
     }
   }
 
@@ -32,12 +36,19 @@ module.exports = (sequelize) => {
     },
     lastName: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: true
+    },
+    role: {
+      type: DataTypes.ENUM('SUPERADMIN', 'ADMIN', 'USER'),
+      defaultValue: 'USER'
+    },
+    companyId: {
+      type: DataTypes.UUID,
+      allowNull: true
     }
   }, {
     sequelize,
     modelName: 'User',
-    timestamps: true
   });
 
   return User;

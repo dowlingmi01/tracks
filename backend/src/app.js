@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const authRoutes = require('./routes/auth');
+const adminRoutes = require('./routes/admin'); 
 
 // Initialize express app
 const app = express();
@@ -22,6 +23,7 @@ app.use((req, res, next) => {
 });
 // Use routes
 app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Basic error handling
 app.use((err, req, res, next) => {

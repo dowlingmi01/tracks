@@ -1,11 +1,12 @@
+// backend/src/controllers/authController.js
 const { User } = require('../models');
 const jwt = require('jsonwebtoken');
 
 const authController = {
   register: async (req, res) => {
     try {
-      const { email, password } = req.body;
-      console.log('Login attempt for:', email); // Add logging
+      const { email, password, firstName, lastName } = req.body;
+      console.log('Register attempt for:', email);
       
       // Check if user already exists
       const existingUser = await User.findOne({ where: { email } });
@@ -13,17 +14,21 @@ const authController = {
         return res.status(400).json({ message: 'User already exists' });
       }
 
-      // Create new user
+      // Create new user with default role
       const user = await User.create({
         email,
         password,
         firstName,
-        lastName
+        lastName,
+        role: 'USER' // Default role
       });
 
       // Generate token
       const token = jwt.sign(
-        { id: user.id }, 
+        { 
+          userId: user.id,
+          role: user.role // Include role in token
+        }, 
         process.env.JWT_SECRET, 
         { expiresIn: '1d' }
       );
@@ -35,7 +40,8 @@ const authController = {
           id: user.id,
           email: user.email,
           firstName: user.firstName,
-          lastName: user.lastName
+          lastName: user.lastName,
+          role: user.role // Include role in response
         }
       });
     } catch (error) {
@@ -51,7 +57,7 @@ const authController = {
       // Find user
       const user = await User.findOne({ where: { email } });
       if (!user) {
-        console.log('User not found:', email); // Add logging
+        console.log('User not found:', email);
         return res.status(401).json({ message: 'Invalid credentials' });
       }
 
@@ -61,9 +67,12 @@ const authController = {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
 
-      // Generate token
+      // Generate token with role
       const token = jwt.sign(
-        { id: user.id }, 
+        { 
+          id: user.id,
+          role: user.role // Include role in token
+        }, 
         process.env.JWT_SECRET, 
         { expiresIn: '1d' }
       );
@@ -75,7 +84,8 @@ const authController = {
           id: user.id,
           email: user.email,
           firstName: user.firstName,
-          lastName: user.lastName
+          lastName: user.lastName,
+          role: user.role // Include role in response
         }
       });
     } catch (error) {
@@ -83,7 +93,7 @@ const authController = {
         message: error.message,
         stack: error.stack 
       });
-        res.status(500).json({ message: 'Error logging in' });  
+      res.status(500).json({ message: 'Error logging in' });  
     }
   }
 };

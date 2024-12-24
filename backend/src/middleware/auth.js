@@ -1,17 +1,47 @@
 // backend/src/middleware/auth.js
 const jwt = require('jsonwebtoken');
+const { User } = require('../models');
 
-const auth = async (req, res, next) => {
+const protect = async (req, res, next) => {
   try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
-    if (!token) throw new Error('No token provided');
+    // 1) Getting token and check if it exists
+    let token;
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+      token = req.headers.authorization.split(' ')[1];
+    }
 
+    if (!token) {
+      return res.status(401).json({
+        status: 'error',
+        message: 'You are not logged in! Please log in to get access.'
+      });
+    }
+
+    // 2) Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.userId = decoded.userId;
+    
+    // Log the decoded token for debugging
+    console.log('Decoded token:', decoded);
+
+    // 3) Check if user still exists
+    const currentUser = await User.findByPk(decoded.userId); // Changed from decoded.id to decoded.userId
+    if (!currentUser) {
+      return res.status(401).json({
+        status: 'error',
+        message: 'The user belonging to this token no longer exists.'
+      });
+    }
+
+    // 4) Grant access to protected route
+    req.user = currentUser;
     next();
   } catch (error) {
-    res.status(401).json({ error: 'Please authenticate' });
+    console.error('Auth middleware error:', error);
+    return res.status(401).json({
+      status: 'error',
+      message: 'Invalid token or authorization error'
+    });
   }
 };
 
-module.exports = auth;
+module.exports = { protect };

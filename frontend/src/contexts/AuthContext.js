@@ -1,5 +1,5 @@
 // src/contexts/AuthContext.js
-import { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 import { loginUser, registerUser } from '../services/auth';
 
 export const AuthContext = createContext(null);
@@ -25,7 +25,6 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
-        // Check what URL is being used
       console.log('Attempting login at:', 'http://localhost:3001/api/auth/login');
       const response = await loginUser(credentials.email, credentials.password);
       
@@ -43,12 +42,6 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       const response = await registerUser(userData);
-      
-      // Optionally auto-login after registration
-      // localStorage.setItem('auth_token', response.token);
-      // localStorage.setItem('user', JSON.stringify(response.user));
-      // setUser(response.user);
-      
       return response;
     } catch (error) {
       console.error('Registration error:', error);
@@ -62,13 +55,24 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  // Add role-check functions
+  const isSuperAdmin = () => {
+    return user?.role === 'SUPERADMIN';
+  };
+
+  const isAdmin = () => {
+    return user?.role === 'ADMIN';
+  };
+
   const value = {
     user,
     login,
     register,
     logout,
     loading,
-    isAuthenticated: !!user
+    isAuthenticated: !!user,
+    isSuperAdmin,
+    isAdmin
   };
 
   return (
@@ -85,3 +89,5 @@ export const useAuth = () => {
   }
   return context;
 };
+
+export default AuthContext;
