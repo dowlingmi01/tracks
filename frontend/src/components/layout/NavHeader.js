@@ -1,12 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../contexts/AuthContext'; // Updated import path
 import { Menu, X } from 'lucide-react';
 
 function NavHeader() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { user, logout } = useAuth();
+  const { user, logout, isSuperAdmin } = useAuth(); // Added isSuperAdmin
   const location = useLocation();
+
+  // Debug logging
+  useEffect(() => {
+    console.log('NavHeader Auth State:', {
+      user,
+      isSuperAdmin: isSuperAdmin?.(),
+      role: user?.role
+    });
+  }, [user, isSuperAdmin]);
 
   const handleLogout = async () => {
     try {
@@ -16,12 +25,15 @@ function NavHeader() {
     }
   };
 
+  // Dynamic navigation links including admin link
   const navLinks = [
     { name: 'Home', path: '/' },
     ...(user 
       ? [
           { name: 'Dashboard', path: '/dashboard' },
-          { name: 'Settings', path: '/settings' }
+          { name: 'Settings', path: '/settings' },
+          // Conditionally add Manage Companies link for superadmin
+          ...(isSuperAdmin() ? [{ name: 'Manage Companies', path: '/admin/companies' }] : [])
         ]
       : [
           { name: 'Login', path: '/login' },
@@ -40,6 +52,13 @@ function NavHeader() {
               <span className="text-2xl font-bold text-indigo-600">Tracks</span>
             </Link>
           </div>
+
+          {/* Debug info - remove in production */}
+          {user && (
+            <div className="hidden md:flex items-center text-xs text-gray-500 mr-4">
+              Role: {user.role} | Super: {isSuperAdmin() ? 'Yes' : 'No'}
+            </div>
+          )}
 
           {/* Desktop navigation */}
           <div className="hidden md:flex items-center space-x-4">
@@ -61,7 +80,7 @@ function NavHeader() {
                 onClick={handleLogout}
                 className="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-indigo-600 hover:bg-gray-50"
               >
-                Logout
+                Logout ({user.firstName})
               </button>
             )}
           </div>
@@ -108,7 +127,7 @@ function NavHeader() {
                 }}
                 className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-indigo-600 hover:bg-gray-50"
               >
-                Logout
+                Logout ({user.firstName})
               </button>
             )}
           </div>

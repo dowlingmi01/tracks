@@ -85,7 +85,8 @@ const authController = {
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
-          role: user.role // Include role in response
+          role: user.role, // Include role in response
+          companyID: user.companyID
         }
       });
     } catch (error) {

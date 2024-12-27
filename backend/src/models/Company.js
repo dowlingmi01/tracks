@@ -1,4 +1,3 @@
-// backend/src/models/Company.js
 'use strict';
 const { Model } = require('sequelize');
 
@@ -14,8 +13,8 @@ module.exports = (sequelize, DataTypes) => {
 
   Company.init({
     id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
       primaryKey: true
     },
     name: {

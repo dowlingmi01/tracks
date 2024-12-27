@@ -1,17 +1,59 @@
 // src/contexts/AuthContext.js
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { loginUser, registerUser } from '../services/auth';
 
 export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  // Initialize user state from localStorage
+  const [user, setUser] = useState(() => {
+    try {
+      const storedUser = localStorage.getItem('user');
+      return storedUser ? JSON.parse(storedUser) : null;
+    } catch (error) {
+      console.error('Error parsing stored user:', error);
+      return null;
+    }
+  });
   const [loading, setLoading] = useState(true);
 
+  const login = async (credentials) => {
+    try {
+      const response = await loginUser(credentials.email, credentials.password);
+      console.log('Login response:', response);
+      
+      if (response.user) {
+        localStorage.setItem('auth_token', response.token);
+        localStorage.setItem('user', JSON.stringify(response.user));
+        setUser(response.user);
+      }
+      
+      return response;
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    }
+  };
+
+  const logout = useCallback(() => {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user');
+    setUser(null);
+  }, []);
+
+  const isSuperAdmin = useCallback(() => {
+    return user?.role === 'SUPERADMIN';
+  }, [user]);
+
+  const isAdmin = useCallback(() => {
+    return user?.role === 'ADMIN';
+  }, []);
+
+  // Initialize auth state
   useEffect(() => {
-    // Check if user is logged in
     const token = localStorage.getItem('auth_token');
     const storedUser = localStorage.getItem('user');
+    
     if (token && storedUser) {
       try {
         setUser(JSON.parse(storedUser));
@@ -21,53 +63,17 @@ export const AuthProvider = ({ children }) => {
       }
     }
     setLoading(false);
-  }, []);
+  }, [logout]);
 
-  const login = async (credentials) => {
-    try {
-      console.log('Attempting login at:', 'http://localhost:3001/api/auth/login');
-      const response = await loginUser(credentials.email, credentials.password);
-      
-      localStorage.setItem('auth_token', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
-      
-      setUser(response.user);
-      return response;
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
-    }
-  };
-
-  const register = async (userData) => {
-    try {
-      const response = await registerUser(userData);
-      return response;
-    } catch (error) {
-      console.error('Registration error:', error);
-      throw error;
-    }
-  };
-
-  const logout = () => {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('user');
-    setUser(null);
-  };
-
-  // Add role-check functions
-  const isSuperAdmin = () => {
-    return user?.role === 'SUPERADMIN';
-  };
-
-  const isAdmin = () => {
-    return user?.role === 'ADMIN';
-  };
+  // Debug user state changes
+  useEffect(() => {
+    console.log('User state updated:', user);
+    console.log('Is SuperAdmin:', user?.role === 'SUPERADMIN');
+  }, [user]);
 
   const value = {
     user,
     login,
-    register,
     logout,
     loading,
     isAuthenticated: !!user,
