@@ -1,14 +1,15 @@
 // src/pages/admin/Companies.js
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Eye } from 'lucide-react';
 
 const API_BASE_URL = 'http://localhost:3001/api';
 
 const Companies = () => {
+  const navigate = useNavigate();
   const { user, isSuperAdmin } = useAuth();
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,8 +22,8 @@ const Companies = () => {
 
   const getAuthHeaders = () => {
     try {
-      const token = localStorage.getItem('auth_token'); // Updated to match AuthContext
-      console.log('Retrieved token:', token); // Debug log
+      const token = localStorage.getItem('auth_token');
+      console.log('Retrieved token:', token);
       
       if (!token) {
         console.error('No auth_token found in localStorage');
@@ -202,6 +203,15 @@ const Companies = () => {
                   </td>
                   <td className="px-6 py-4">{formatDate(company.createdAt)}</td>
                   <td className="px-6 py-4 text-right space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate(`/admin/companies/${company.id}`)}
+                      className="inline-flex items-center gap-2"
+                    >
+                      <Eye className="w-4 h-4" />
+                      View
+                    </Button>
                     <Button
                       variant="outline"
                       size="sm"

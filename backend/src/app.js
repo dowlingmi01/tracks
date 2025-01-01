@@ -3,6 +3,7 @@ const cors = require('cors');
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin'); 
 const companiesRouter = require('./routes/companies');
+const userRoutes = require('./routes/users');
 const { sequelize } = require('./models');
 
 // Initialize express app
@@ -35,11 +36,23 @@ app.get('/debug/companies-structure', async (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/companies', companiesRouter);
+app.use('/api/users', userRoutes);
 
-// Basic error handling
+// Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).send('Something broke!');
+  if (err.name === 'UnauthorizedError') {
+    res.status(401).json({ error: 'Invalid token' });
+  } else if (err.name === 'ValidationError') {
+    res.status(400).json({ error: err.message });
+  } else {
+    console.error(err.stack);
+    res.status(500).json({ error: 'Something went wrong!' });
+  }
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ error: 'Route not found' });
 });
 
 module.exports = app;

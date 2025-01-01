@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext'; // Updated import path
-import { Menu, X } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
+import { Menu, X, Users } from 'lucide-react'; // Added Users icon
 
 function NavHeader() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { user, logout, isSuperAdmin } = useAuth(); // Added isSuperAdmin
+  const { user, logout, isSuperAdmin } = useAuth();
   const location = useLocation();
 
-  // Debug logging
   useEffect(() => {
     console.log('NavHeader Auth State:', {
       user,
@@ -25,14 +24,23 @@ function NavHeader() {
     }
   };
 
-  // Dynamic navigation links including admin link
+  // Updated navigation links to include Users management
   const navLinks = [
     { name: 'Home', path: '/' },
     ...(user 
       ? [
           { name: 'Dashboard', path: '/dashboard' },
           { name: 'Settings', path: '/settings' },
-          // Conditionally add Manage Companies link for superadmin
+          // Add Users link for SUPERADMIN and ADMIN roles
+          ...(user.role === 'SUPERADMIN' || user.role === 'ADMIN' 
+            ? [{ 
+                name: 'Users', 
+                path: '/users',
+                icon: Users // Added icon for Users section
+              }] 
+            : []
+          ),
+          // Keep existing Manage Companies link for superadmin
           ...(isSuperAdmin() ? [{ name: 'Manage Companies', path: '/admin/companies' }] : [])
         ]
       : [
@@ -66,12 +74,13 @@ function NavHeader() {
               <Link
                 key={link.path}
                 to={link.path}
-                className={`px-3 py-2 rounded-md text-sm font-medium ${
+                className={`px-3 py-2 rounded-md text-sm font-medium inline-flex items-center ${
                   location.pathname === link.path
                     ? 'text-indigo-600 bg-indigo-50'
                     : 'text-gray-600 hover:text-indigo-600 hover:bg-gray-50'
                 }`}
               >
+                {link.icon && <link.icon className="h-4 w-4 mr-2" />}
                 {link.name}
               </Link>
             ))}
@@ -109,13 +118,14 @@ function NavHeader() {
               <Link
                 key={link.path}
                 to={link.path}
-                className={`block px-3 py-2 rounded-md text-base font-medium ${
+                className={`block px-3 py-2 rounded-md text-base font-medium inline-flex items-center ${
                   location.pathname === link.path
                     ? 'text-indigo-600 bg-indigo-50'
                     : 'text-gray-600 hover:text-indigo-600 hover:bg-gray-50'
                 }`}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
+                {link.icon && <link.icon className="h-4 w-4 mr-2" />}
                 {link.name}
               </Link>
             ))}

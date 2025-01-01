@@ -19,16 +19,22 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
+      console.log('Attempting login with:', { email: credentials.email });
       const response = await loginUser(credentials.email, credentials.password);
-      console.log('Login response:', response);
+      console.log('Login response data:', response);
       
-      if (response.user) {
-        localStorage.setItem('auth_token', response.token);
-        localStorage.setItem('user', JSON.stringify(response.user));
-        setUser(response.user);
+      // Now we should have direct access to token and user
+      const { token, user } = response.data;
+      
+      if (user) {
+        localStorage.setItem('auth_token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+        setUser(user);
+        
+        console.log('Login successful - stored user:', user);
       }
       
-      return response;
+      return response.data;
     } catch (error) {
       console.error('Login error:', error);
       throw error;

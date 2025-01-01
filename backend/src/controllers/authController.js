@@ -1,102 +1,69 @@
-// backend/src/controllers/authController.js
-const { User } = require('../models');
-const jwt = require('jsonwebtoken');
+login: async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    console.log('Login attempt for email:', email);
 
-const authController = {
-  register: async (req, res) => {
-    try {
-      const { email, password, firstName, lastName } = req.body;
-      console.log('Register attempt for:', email);
-      
-      // Check if user already exists
-      const existingUser = await User.findOne({ where: { email } });
-      if (existingUser) {
-        return res.status(400).json({ message: 'User already exists' });
-      }
+    // Explicitly request the password field
+    const user = await User.scope('withPassword').findOne({ 
+      where: { email },
+      attributes: {
+        include: ['password'] // Explicitly include password
+      },
+      include: [{
+        model: User.sequelize.models.Company,
+        as: 'company'
+      }]
+    });
 
-      // Create new user with default role
-      const user = await User.create({
-        email,
-        password,
-        firstName,
-        lastName,
-        role: 'USER' // Default role
-      });
-
-      // Generate token
-      const token = jwt.sign(
-        { 
-          userId: user.id,
-          role: user.role // Include role in token
-        }, 
-        process.env.JWT_SECRET, 
-        { expiresIn: '1d' }
-      );
-
-      res.status(201).json({
-        message: 'User created successfully',
-        token,
-        user: {
-          id: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          role: user.role // Include role in response
-        }
-      });
-    } catch (error) {
-      console.error('Register error:', error);
-      res.status(500).json({ message: 'Error registering user' });
+    if (!user) {
+      console.log('User not found:', email);
+      return res.status(401).json({ message: 'Invalid credentials' });
     }
-  },
 
-  login: async (req, res) => {
-    try {
-      const { email, password } = req.body;
+    console.log('Found user:', {
+      id: user.id,
+      email: user.email,
+      hasPassword: !!user.password,
+      passwordLength: user.password?.length,
+      passwordValue: user.password // Temporarily log this for debugging
+    });
 
-      // Find user
-      const user = await User.findOne({ where: { email } });
-      if (!user) {
-        console.log('User not found:', email);
-        return res.status(401).json({ message: 'Invalid credentials' });
+    // Validate password
+    console.log('Attempting password validation...', {
+      providedPassword: password,
+      storedPasswordExists: !!user.password
+    });
+    
+    const isValidPassword = await user.validatePassword(password);
+    console.log('Password validation result:', isValidPassword);
+    // Generate token with role
+    const token = jwt.sign(
+      { 
+        id: user.id,
+        role: user.role
+      }, 
+      process.env.JWT_SECRET, 
+      { expiresIn: '1d' }
+    );
+
+    res.json({
+      message: 'Logged in successfully',
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        companyId: user.companyId, // Fixed capitalization
+        company: user.company // Include company details if needed
       }
-
-      // Validate password
-      const isValidPassword = await user.validatePassword(password);
-      if (!isValidPassword) {
-        return res.status(401).json({ message: 'Invalid credentials' });
-      }
-
-      // Generate token with role
-      const token = jwt.sign(
-        { 
-          id: user.id,
-          role: user.role // Include role in token
-        }, 
-        process.env.JWT_SECRET, 
-        { expiresIn: '1d' }
-      );
-
-      res.json({
-        message: 'Logged in successfully',
-        token,
-        user: {
-          id: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          role: user.role, // Include role in response
-          companyID: user.companyID
-        }
-      });
-    } catch (error) {
-      console.error('Login error details:', {
-        message: error.message,
-        stack: error.stack 
-      });
-      res.status(500).json({ message: 'Error logging in' });  
-    }
+    });
+  } catch (error) {
+    console.error('Login error details:', {
+      message: error.message,
+      stack: error.stack 
+    });
+    res.status(500).json({ message: 'Error logging in' });  
   }
-};
-
-module.exports = authController;
+}
