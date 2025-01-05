@@ -2,24 +2,25 @@
 const express = require('express');
 const router = express.Router();
 const companyController = require('../controllers/companyController');
-const { protect } = require('../middleware/auth'); // Changed from { auth } to { protect }
+const { protect } = require('../middleware/auth'); 
+const { restrictTo } = require('../middleware/roleAuth');
 
 // All routes require authentication
 router.use(protect);
 
-// GET all companies
-router.get('/', companyController.getAll);
+// GET all companies - restrict to SUPERADMIN and ADMIN
+router.get('/', restrictTo('SUPERADMIN', 'ADMIN'), companyController.getAll);
 
 // GET single company
-router.get('/:id', companyController.getById);
+router.get('/:id', restrictTo('SUPERADMIN', 'ADMIN'), companyController.getById);
 
-// POST new company
-router.post('/', companyController.create);
+// POST new company - restrict to SUPERADMIN
+router.post('/', restrictTo('SUPERADMIN'), companyController.create);
 
-// PUT update company
-router.put('/:id', companyController.update);
+// PUT update company - restrict to SUPERADMIN
+router.put('/:id', restrictTo('SUPERADMIN'), companyController.update);
 
-// DELETE company
-router.delete('/:id', companyController.delete);
+// DELETE company - restrict to SUPERADMIN
+router.delete('/:id', restrictTo('SUPERADMIN'), companyController.delete);
 
 module.exports = router;

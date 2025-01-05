@@ -5,6 +5,7 @@ const adminRoutes = require('./routes/admin');
 const companiesRouter = require('./routes/companies');
 const userRoutes = require('./routes/users');
 const { sequelize } = require('./models');
+const cohortRoutes = require('./routes/cohorts');
 
 // Initialize express app
 const app = express();
@@ -37,6 +38,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/companies', companiesRouter);
 app.use('/api/users', userRoutes);
+app.use('/api/cohorts', cohortRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

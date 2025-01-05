@@ -10,6 +10,10 @@ import Dashboard from './pages/Dashboard';
 import Companies from './pages/admin/Companies';
 import UsersList from './pages/users/UsersList';
 import UserForm from './pages/users/UserForm';
+import Cohorts from './pages/cohorts/Cohorts';
+import CohortPage from './pages/cohorts/CohortPage';
+import CreateCohort from './pages/cohorts/CreateCohort';
+import EditCohort from './pages/cohorts/EditCohort';
 import { Toaster } from 'react-hot-toast';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
@@ -51,7 +55,40 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-              <Route 
+              <Route
+                path="/cohorts"
+                element={
+                  <ProtectedRoute roles={['SUPERADMIN', 'ADMIN']}>
+                    <Cohorts />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/cohorts/new"
+                element={
+                  <ProtectedRoute roles={['SUPERADMIN', 'ADMIN']}>
+                    <CreateCohort />
+                  </ProtectedRoute>
+                }
+              />
+              {/* Change "/cohort/:id" to "/cohorts/:id" */}
+              <Route
+                path="/cohorts/:id"
+                element={
+                  <ProtectedRoute roles={['SUPERADMIN', 'ADMIN']}>
+                    <CohortPage />
+                  </ProtectedRoute>
+                }
+              />
+              {/* Change "/cohort/:id/edit" to "/cohorts/:id/edit" */}
+              <Route
+                path="/cohorts/:id/edit"
+                element={
+                  <ProtectedRoute roles={['SUPERADMIN', 'ADMIN']}>
+                    <EditCohort />
+                  </ProtectedRoute>
+                }
+              />              <Route 
                 path="/dashboard" 
                 element={
                   <ProtectedRoute>

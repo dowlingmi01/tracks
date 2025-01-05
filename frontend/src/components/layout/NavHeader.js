@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { Menu, X, Users } from 'lucide-react'; // Added Users icon
+import { Menu, X, Users, Users2 } from 'lucide-react';  // Added Users and Groups icon
 
 function NavHeader() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -31,7 +31,17 @@ function NavHeader() {
       ? [
           { name: 'Dashboard', path: '/dashboard' },
           { name: 'Settings', path: '/settings' },
-          // Add Users link for SUPERADMIN and ADMIN roles
+          // Add Cohorts link for authenticated users with a company
+          ...(user.companyId 
+            ? [{ 
+                name: 'Cohorts', 
+                path: '/cohorts',
+                icon: Users2
+              }] 
+            : []
+          ),
+  
+          // Existing Users link for SUPERADMIN and ADMIN roles
           ...(user.role === 'SUPERADMIN' || user.role === 'ADMIN' 
             ? [{ 
                 name: 'Users', 

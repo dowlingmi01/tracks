@@ -12,6 +12,16 @@ module.exports = (sequelize, DataTypes) => {
         onDelete: 'SET NULL', // If company is deleted, keep user but set companyId to null
         onUpdate: 'CASCADE'   // If company ID changes, update the reference
       });
+      User.belongsToMany(models.Cohort, {
+        through: models.CohortMember,
+        as: 'cohorts',
+        foreignKey: 'userId',
+        otherKey: 'cohortId'
+      });
+      User.hasMany(models.CohortMember, {
+        foreignKey: 'userId',
+        as: 'cohortMemberships'
+      });
     }
 
     // Instance method to check if user is admin
@@ -90,14 +100,8 @@ module.exports = (sequelize, DataTypes) => {
       }
     },
     role: {
-      type: DataTypes.ENUM('SUPERADMIN', 'ADMIN', 'USER'),
-      defaultValue: 'USER',
-      validate: {
-        isIn: {
-          args: [['SUPERADMIN', 'ADMIN', 'USER']],
-          msg: 'Invalid role specified'
-        }
-      }
+      type: DataTypes.STRING,
+      allowNull: true,
     },
     companyId: {
       type: DataTypes.UUID,

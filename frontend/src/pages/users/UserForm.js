@@ -1,7 +1,8 @@
 // frontend/src/pages/users/UserForm.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import axios from 'axios';
+import { userService } from '../../services/userService';
+import { companyService } from '../../services/companyService';
 import { useAuth } from '../../hooks/useAuth';
 
 export default function UserForm() {
@@ -26,17 +27,20 @@ export default function UserForm() {
       try {
         // Fetch companies if user is SUPERADMIN or ADMIN
         if (['SUPERADMIN', 'ADMIN'].includes(currentUser.role)) {
-          const companiesResponse = await axios.get('/api/companies');
-          setCompanies(companiesResponse.data);
-        }
+            console.log('Current user role:', currentUser.role);
+            console.log('Attempting to fetch companies...');
+            const companiesResponse = await companyService.getAll();
+            console.log('Companies response:', companiesResponse);
+            setCompanies(companiesResponse.data);
+          }
 
         // If editing existing user, fetch their data
         if (id) {
-          const userResponse = await axios.get(`/api/users/${id}`);
-          const userData = userResponse.data;
-          setFormData({
-            ...userData,
-            password: '' // Don't populate password field
+            const userResponse = await userService.getById(id);
+            const userData = userResponse.data;
+            setFormData({
+              ...userData,
+              password: '' // Don't populate password field
           });
         } else if (currentUser.role === 'ADMIN') {
           // Set company ID automatically for ADMIN users
@@ -46,6 +50,11 @@ export default function UserForm() {
           }));
         }
       } catch (err) {
+        console.error('Full error details:', {
+            message: err.message,
+            response: err.response,
+            config:err.config
+        });
         setError(err.response?.data?.message || 'Error fetching data');
       } finally {
         setLoading(false);
@@ -64,9 +73,9 @@ export default function UserForm() {
       }
 
       if (id) {
-        await axios.put(`/api/users/${id}`, data);
+        await userService.update(id, data);
       } else {
-        await axios.post('/api/users', data);
+        await userService.create(data);
       }
 
       navigate('/users');
