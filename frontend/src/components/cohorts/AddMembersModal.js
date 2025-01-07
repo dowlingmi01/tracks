@@ -18,8 +18,10 @@ const AddMembersModal = ({ isOpen, onClose, onAdd, cohortId, companyId }) => {
 
   const fetchUsers = async () => {
     try {
-      const data = await userService.getUsersForCompany(companyId);
-      setUsers(data);
+      const response = await userService.getUsersForCompany(companyId);
+      const users = response.data; // Extract the data from axios response
+      console.log('Received users:', users); // Debug log
+      setUsers(users);
     } catch (err) {
       setError('Failed to load users');
       console.error('Error fetching users:', err);
